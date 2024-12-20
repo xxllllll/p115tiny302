@@ -43,13 +43,15 @@ jobs:
       - name: Check Docker Hub for existing image
         id: check_version
         run: |
-          EXISTS=$(curl -s "https://hub.docker.com/v2/repositories/${{ env.DOCKER_IMAGE }}/tags/${{ steps.pypi_version.outputs.version }}" | grep -c "name.*${{ steps.pypi_version.outputs.version }}" || true)
-          if [ "$EXISTS" -gt "0" ]; then
+          # 使用 Docker Hub API v2 检查标签是否存在
+          RESPONSE=$(curl -s "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKER_IMAGE }}/tags/?page_size=100")
+          if echo "$RESPONSE" | grep -q "\"name\":\"${{ steps.pypi_version.outputs.version }}\""; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "Version ${{ steps.pypi_version.outputs.version }} already exists on Docker Hub"
           else
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Version ${{ steps.pypi_version.outputs.version }} does not exist on Docker Hub"
+            echo "Response: $RESPONSE"
           fi
 
       - name: Set up Docker Buildx
@@ -74,3 +76,6 @@ jobs:
             ${{ env.DOCKER_IMAGE }}:${{ steps.pypi_version.outputs.version }}
           cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
+        env:
+          DOCKER_BUILDKIT: 1
+          BUILDKIT_PROGRESS: plain
