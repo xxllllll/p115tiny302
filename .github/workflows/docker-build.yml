@@ -38,12 +38,8 @@ jobs:
      - name: Get latest version from PyPI
        id: pypi_version
        run: |
-         # 显示当前目录结构以便调试
-         echo "Current directory structure:"
-         ls -R
-         
-         # 使用正确的脚本路径（注意：只需要一个 p115tiny302 前缀）
-         python p115tiny302/scripts/check_version.py ${{ env.PYPI_PACKAGE }} > version.txt
+         # 使用正确的脚本路径
+         python scripts/check_version.py ${{ env.PYPI_PACKAGE }} > version.txt
          echo "version=$(cat version.txt)" >> $GITHUB_OUTPUT
          echo "Latest version: $(cat version.txt)"
      - name: Check Docker Hub for existing image
@@ -61,12 +57,11 @@ jobs:
        if: steps.check_version.outputs.exists == 'false'
        run: |
          mkdir -p build
-         # 同样，路径只需要一个 p115tiny302 前缀
-         cp p115tiny302/p115tiny302/requirements.txt build/
-         cp p115tiny302/p115tiny302/main.py build/
-         cp -r p115tiny302/p115tiny302/static build/
-         cp -r p115tiny302/p115tiny302/templates build/
-         cp p115tiny302/Dockerfile build/
+         cp p115tiny302/requirements.txt build/
+         cp p115tiny302/main.py build/
+         cp -r p115tiny302/static build/
+         cp -r p115tiny302/templates build/
+         cp Dockerfile build/
          
          echo "Build directory contents:"
          ls -la build/
