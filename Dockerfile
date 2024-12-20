@@ -3,7 +3,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # 首先复制 requirements.txt
-COPY p115tiny302/p115tiny302/requirements.txt .
+COPY requirements.txt .
 
 # 安装依赖并清理缓存
 RUN pip install --no-cache-dir -r requirements.txt && \
@@ -13,11 +13,11 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 RUN mkdir -p /app/static /app/templates
 
 # 复制静态文件和模板
-COPY p115tiny302/p115tiny302/static /app/static
-COPY p115tiny302/p115tiny302/templates /app/templates
+COPY static /app/static
+COPY templates /app/templates
 
 # 复制主程序
-COPY p115tiny302/p115tiny302/main.py .
+COPY main.py .
 
 # 创建cookies文件
 RUN touch /app/115-cookies.txt && \
