@@ -5,4 +5,4 @@ jinja2
 aiofiles
 python-multipart
 orjson
-p115tiny302
+p115tiny302>=0.0.3
