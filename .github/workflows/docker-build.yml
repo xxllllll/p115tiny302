@@ -69,13 +69,14 @@ jobs:
         uses: docker/build-push-action@v5
         if: steps.check_version.outputs.exists == 'false'
         with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.DOCKER_IMAGE }}:latest
-            ${{ env.DOCKER_IMAGE }}:${{ steps.pypi_version.outputs.version }}
-          cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
+         context: ./p115tiny302/p115tiny302  # 修改构建上下文
+         file: ../../Dockerfile              # 指定 Dockerfile 路径
+         push: true
+         tags: |
+           ${{ env.DOCKER_IMAGE }}:latest
+           ${{ env.DOCKER_IMAGE }}:${{ steps.pypi_version.outputs.version }}
+         cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
+         cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
         env:
-          DOCKER_BUILDKIT: 1
-          BUILDKIT_PROGRESS: plain
+         DOCKER_BUILDKIT: 1
+         BUILDKIT_PROGRESS: plain
