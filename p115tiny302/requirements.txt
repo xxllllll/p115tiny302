@@ -1,0 +1,8 @@
+blacksheep
+uvicorn
+fastapi
+jinja2
+aiofiles
+python-multipart
+orjson
+p115tiny302
