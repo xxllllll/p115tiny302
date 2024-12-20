@@ -1,0 +1,71 @@
+name: Build and Push Docker Image
+
+on:
+  schedule:
+    - cron: '0 16 * * *'  # UTC 16:00 = 北京时间 00:00
+  workflow_dispatch:  # 支持手动触发
+  push:
+    branches: [ main ]
+    paths:
+      - 'p115tiny302/**'
+      - '.github/workflows/docker-build.yml'
+      - 'Dockerfile'
+
+env:
+  DOCKER_IMAGE: xxllllll/p115tiny302
+  PYPI_PACKAGE: p115tiny302
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Get latest version from PyPI
+        id: pypi_version
+        run: |
+          python scripts/check_version.py ${{ env.PYPI_PACKAGE }} > version.txt
+          echo "version=$(cat version.txt)" >> $GITHUB_OUTPUT
+          echo "Latest version: $(cat version.txt)"
+
+      - name: Check Docker Hub for existing image
+        id: check_version
+        run: |
+          EXISTS=$(curl -s "https://hub.docker.com/v2/repositories/${{ env.DOCKER_IMAGE }}/tags/${{ steps.pypi_version.outputs.version }}" | grep -c "name.*${{ steps.pypi_version.outputs.version }}" || true)
+          if [ "$EXISTS" -gt "0" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version ${{ steps.pypi_version.outputs.version }} already exists on Docker Hub"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version ${{ steps.pypi_version.outputs.version }} does not exist on Docker Hub"
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        if: steps.check_version.outputs.exists == 'false'
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        if: steps.check_version.outputs.exists == 'false'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        if: steps.check_version.outputs.exists == 'false'
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:latest
+            ${{ env.DOCKER_IMAGE }}:${{ steps.pypi_version.outputs.version }}
+          cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
