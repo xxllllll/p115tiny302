@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>115服务</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>115服务</h1>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span class="status-text">服务运行中</span>
+            </div>
+        </header>
+        
+        <main>
+            <div class="log-container">
+                <h2>运行日志</h2>
+                <div class="log-content" id="logContent"></div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const logContent = document.getElementById('logContent');
+        let lastLogCount = 0;
+
+        function renderLogs(logs) {
+            return logs.map(log => `
+                <div class="log-entry">
+                    <span class="timestamp">${log.timestamp}</span>
+                    <span class="message">${log.message}</span>
+                </div>
+            `).join('');
+        }
+
+        function isScrolledToBottom() {
+            const threshold = 50; // 50px 的阈值
+            return (logContent.scrollHeight - logContent.scrollTop - logContent.clientHeight) <= threshold;
+        }
+
+        function scrollToBottom() {
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        function updateLogs() {
+            fetch('/api/logs')
+                .then(response => response.json())
+                .then(logs => {
+                    if (!logs || !Array.isArray(logs)) return;
+                    
+                    // 如果日志数量没变，不更新
+                    if (logs.length === lastLogCount) return;
+                    lastLogCount = logs.length;
+
+                    // 检查是否在底部
+                    const wasAtBottom = isScrolledToBottom();
+                    
+                    // 更新内容
+                    logContent.innerHTML = renderLogs(logs);
+                    
+                    // 如果之前在底部，保持在底部
+                    if (wasAtBottom) {
+                        scrollToBottom();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching logs:', error);
+                    if (!logContent.innerHTML.includes('错误')) {
+                        logContent.innerHTML = `
+                            <div class="log-entry error">
+                                <span class="message">获取日志失败: ${error.message}</span>
+                            </div>
+                        `;
+                    }
+                });
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLogs();
+            scrollToBottom();
+        });
+
+        // 定期更新
+        setInterval(updateLogs, 1000);
+
+        // 页面可见性变化时更新
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                updateLogs();
+            }
+        });
+
+        // 手动滚动时记录位置
+        logContent.addEventListener('scroll', () => {
+            // 可以在这里添加滚动相关的逻辑
+        });
+    </script>
+</body>
+</html> 
