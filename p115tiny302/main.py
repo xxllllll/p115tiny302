@@ -82,10 +82,10 @@ async def run_302_service():
         from blacksheep.server.responses import Response
         from functools import wraps
         
-        app_302 = make_application(
-            cookies=cookies, 
-            debug=True
-        )
+        app_302 = make_application()
+        
+        # 设置环境变量
+        os.environ['P115TINY302_COOKIES'] = cookies
 
         # 为blacksheep应用添加日志记录
         original_handle = app_302.handle
