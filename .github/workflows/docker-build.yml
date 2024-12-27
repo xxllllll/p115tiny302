@@ -85,3 +85,7 @@ jobs:
            ${{ env.DOCKER_IMAGE }}:${{ steps.pypi_version.outputs.version }}
          cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache
          cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:buildcache,mode=max
+         no-cache: |
+           .*pip install.*
+         build-args: |
+           BUILDKIT_INLINE_CACHE=0 
