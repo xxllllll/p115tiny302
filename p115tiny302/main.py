@@ -84,7 +84,7 @@ async def run_302_service():
         from functools import wraps
         
         # 创建 client 实例并传递给 make_application
-        client = P115Client(cookies, app="wechatmini")
+        client = P115Client(cookies)
         app_302 = make_application(client)
 
         # 为blacksheep应用添加日志记录
