@@ -15,10 +15,11 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir --upgrade pip && \
     # 清除 pip 缓存
     pip cache purge && \
-    # 安装最新版本的 p115tiny302
-    pip install --no-cache-dir --upgrade p115tiny302 && \
+    # 安装最新版本的包
+    pip install --no-cache-dir --upgrade p115tiny302 p115client && \
     # 显示安装的版本
-    pip show p115tiny302 | grep Version
+    pip show p115tiny302 | grep Version && \
+    pip show p115client | grep Version
 
 # 创建必要的目录
 RUN mkdir -p /app/static /app/templates
