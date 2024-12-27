@@ -78,12 +78,13 @@ async def run_302_service():
         add_log("Starting 302 service...")
         add_log(f"Cookies length: {len(cookies)}")
         
-        from p115tiny302 import make_application, Client
+        from p115tiny302 import make_application
+        from p115client import P115Client
         from blacksheep.server.responses import Response
         from functools import wraps
         
         # 创建 client 实例并传递给 make_application
-        client = Client(cookies)
+        client = P115Client(cookies)
         app_302 = make_application(client)
 
         # 为blacksheep应用添加日志记录
