@@ -1,5 +1,8 @@
 FROM python:3.12-slim
 
+# 添加构建参数
+ARG BUILDTIME=unknown
+
 WORKDIR /app
 
 # 首先复制 requirements.txt
