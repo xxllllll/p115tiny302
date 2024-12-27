@@ -5,9 +5,17 @@ WORKDIR /app
 # 首先复制 requirements.txt
 COPY requirements.txt .
 
-# 安装依赖并清理缓存
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir p115tiny302==$(pip index versions p115tiny302 | grep -m1 'Available versions:' | grep -oP '\d+\.\d+\.\d+' | head -1)
+# 添加 no-cache 参数并使用 --no-cache-dir
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements.txt && \
+    # 强制更新 pip
+    pip install --no-cache-dir --upgrade pip && \
+    # 清除 pip 缓存
+    pip cache purge && \
+    # 安装最新版本的 p115tiny302
+    pip install --no-cache-dir --upgrade p115tiny302 && \
+    # 显示安装的版本
+    pip show p115tiny302 | grep Version
 
 # 创建必要的目录
 RUN mkdir -p /app/static /app/templates
@@ -26,7 +34,8 @@ RUN touch /app/115-cookies.txt && \
 # 设置环境变量
 ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=utf-8 \
-    TZ=Asia/Shanghai
+    TZ=Asia/Shanghai \
+    P115TINY302_COOKIES=""
 
 # 设置权限
 RUN chmod -R 755 /app
