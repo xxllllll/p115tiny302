@@ -78,14 +78,13 @@ async def run_302_service():
         add_log("Starting 302 service...")
         add_log(f"Cookies length: {len(cookies)}")
         
-        from p115tiny302 import make_application
+        from p115tiny302 import make_application, Client
         from blacksheep.server.responses import Response
         from functools import wraps
         
-        app_302 = make_application()
-        
-        # 设置环境变量
-        os.environ['P115TINY302_COOKIES'] = cookies
+        # 创建 client 实例并传递给 make_application
+        client = Client(cookies)
+        app_302 = make_application(client)
 
         # 为blacksheep应用添加日志记录
         original_handle = app_302.handle
@@ -96,10 +95,9 @@ async def run_302_service():
                 response = await original_handle(request)
                 if isinstance(response, Response):
                     if response.status in [302, 404] or 'pickcode' in str(request.url):
-                        # blacksheep 请求对象的属性不同，需要直接访问
                         log_request(
                             request.client_ip,
-                            request.method,  # 直接使用 method，它已经是字符串
+                            request.method,
                             str(request.url),
                             response.status
                         )
@@ -107,7 +105,6 @@ async def run_302_service():
             except Exception as e:
                 error_msg = str(e)
                 if "FileNotFoundError" in error_msg:
-                    # 文件未找到的错误，记录但不抛出异常
                     log_request(
                         request.client_ip,
                         request.method,
@@ -116,7 +113,6 @@ async def run_302_service():
                     )
                     return Response(404, content="File not found")
                 else:
-                    # 其他错误，记录并继续抛出
                     add_log(f"Error handling request: {error_msg}")
                     raise
 
